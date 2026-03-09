@@ -1,315 +1,232 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NAYAR — Sistema de Inteligencia Espacial</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&family=Exo+2:wght@200;400;700&display=swap" rel="stylesheet">
+  <title>NAYAR — Inteligencia Espacial WiFi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="shell">
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo-block">
-      <div class="logo-hex">
-        <svg viewBox="0 0 48 48" fill="none">
-          <polygon points="24,2 44,13 44,35 24,46 4,35 4,13" stroke="#00d4ff" stroke-width="1" fill="rgba(0,212,255,0.05)"/>
-          <polygon points="24,8 38,16 38,32 24,40 10,32 10,16" stroke="#00d4ff" stroke-width="0.5" fill="none" opacity="0.4"/>
-          <circle cx="24" cy="24" r="4" fill="#00d4ff" opacity="0.8"/>
-          <line x1="24" y1="8" x2="24" y2="20" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-          <line x1="38" y1="16" x2="28" y2="22" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-          <line x1="38" y1="32" x2="28" y2="26" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-          <line x1="24" y1="40" x2="24" y2="28" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-          <line x1="10" y1="32" x2="20" y2="26" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-          <line x1="10" y1="16" x2="20" y2="22" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
-        </svg>
-      </div>
-      <div class="logo-text">
-        <h1>NAYAR</h1>
-        <p>Spatial Intelligence System · v2.4.1</p>
-      </div>
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <div class="logo-hex">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <polygon points="22,4 38,13 38,31 22,40 6,31 6,13"           fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.6"/>
+        <polygon points="22,9 33,15.5 33,28.5 22,35 11,28.5 11,15.5" fill="none" stroke="#00e5ff" stroke-width="0.8" opacity="0.3"/>
+        <circle cx="22" cy="22" r="4" fill="#00e5ff" opacity="0.8"/>
+        <circle cx="22" cy="22" r="7" fill="none" stroke="#00e5ff" stroke-width="0.5" opacity="0.4"/>
+      </svg>
     </div>
-    <div class="status-bar">
-      <div class="status-item">
-        <span class="status-label">Nodo ESP32</span>
-        <span class="status-value">ACTIVO</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Dispositivos</span>
-        <span class="status-value" id="devCount">7</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Uptime</span>
-        <span class="status-value" id="uptimeDisplay">04:32:11</span>
-      </div>
-      <div class="pulse-dot"></div>
+    <div class="logo-text">
+      <h1>NAYAR</h1>
+      <span>INTELIGENCIA ESPACIAL · WIFI SNIFFING · v1.0</span>
     </div>
-  </header>
+  </div>
+  <div class="header-right">
+    <div class="status-indicator">
+      <div class="status-dot offline" id="statusDot"></div>
+      <span id="statusText">DESCONECTADO</span>
+    </div>
+    <div class="last-update" id="lastUpdate">—</div>
+  </div>
+</header>
 
-  <!-- MAIN GRID -->
-  <div class="main-grid">
+<!-- CONFIG BAR -->
+<div class="config-bar">
+  <label>THINGSPEAK CHANNEL ID</label>
+  <input type="text" id="channelId" placeholder="ej: 2345678">
 
-    <!-- FLOOR MAP -->
-    <div class="panel panel-map">
-      <div class="corner-tl"></div>
-      <div class="corner-br"></div>
-      <div class="panel-title">Mapa Espacial · Planta Baja</div>
-      <div class="floor-map-wrap">
-        <svg class="floor-svg" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background -->
-          <rect width="600" height="300" fill="#050d15"/>
+  <label>READ API KEY</label>
+  <input type="text" id="apiKey" placeholder="ej: XXXXXXXXXXXXXXXX">
 
-          <!-- Outer walls -->
-          <rect x="30" y="20" width="540" height="260" fill="none" stroke="#0e2235" stroke-width="2"/>
+  <label>RASPBERRY PI URL</label>
+  <input type="text" id="raspiUrl" placeholder="http://192.168.x.x:5000">
 
-          <!-- Zone A: Sala Principal -->
-          <rect x="30" y="20" width="220" height="160" fill="rgba(0,212,255,0.04)" stroke="#0e2235" stroke-width="1"/>
-          <text x="80" y="42" font-family="Share Tech Mono" font-size="8" fill="#4a7a96" letter-spacing="2">ZONA A · SALA</text>
-          <!-- Occupation heatmap blobs -->
-          <ellipse cx="120" cy="100" rx="55" ry="40" fill="rgba(0,212,255,0.08)" opacity="0.9"/>
-          <ellipse cx="160" cy="110" rx="35" ry="28" fill="rgba(0,212,255,0.12)" opacity="0.9"/>
+  <label>INTERVALO</label>
+  <select class="interval-select" id="intervalSel">
+    <option value="15000">15s</option>
+    <option value="30000" selected>30s</option>
+    <option value="60000">60s</option>
+    <option value="0">Manual</option>
+  </select>
 
-          <!-- Zone B: Oficinas -->
-          <rect x="250" y="20" width="180" height="160" fill="rgba(0,255,157,0.03)" stroke="#0e2235" stroke-width="1"/>
-          <text x="295" y="42" font-family="Share Tech Mono" font-size="8" fill="#4a7a96" letter-spacing="2">ZONA B · OFIC.</text>
-          <ellipse cx="340" cy="95" rx="60" ry="45" fill="rgba(0,255,157,0.09)" opacity="0.9"/>
+  <button class="btn btn-primary"   onclick="startPolling()">▶ CONECTAR</button>
+  <button class="btn btn-secondary" onclick="stopPolling()">■ DETENER</button>
+</div>
 
-          <!-- Zone C: Pasillo -->
-          <rect x="430" y="20" width="140" height="160" fill="rgba(255,107,53,0.03)" stroke="#0e2235" stroke-width="1"/>
-          <text x="455" y="42" font-family="Share Tech Mono" font-size="8" fill="#4a7a96" letter-spacing="2">ZONA C · PASO</text>
+<!-- MAIN -->
+<main>
 
-          <!-- Zone D: Almacén -->
-          <rect x="30" y="180" width="540" height="100" fill="rgba(0,212,255,0.02)" stroke="#0e2235" stroke-width="1"/>
-          <text x="270" y="200" font-family="Share Tech Mono" font-size="8" fill="#4a7a96" letter-spacing="2">ZONA D · ALMACÉN</text>
+  <div class="error-banner" id="errorBanner"></div>
 
-          <!-- Doors -->
-          <line x1="250" y1="20" x2="250" y2="80" stroke="#0a1622" stroke-width="3"/>
-          <path d="M250,20 Q280,20 280,50" fill="none" stroke="#1a3a52" stroke-width="1" stroke-dasharray="3,2"/>
-          <line x1="430" y1="20" x2="430" y2="80" stroke="#0a1622" stroke-width="3"/>
-          <path d="M430,20 Q460,20 460,50" fill="none" stroke="#1a3a52" stroke-width="1" stroke-dasharray="3,2"/>
+  <!-- KPI CARDS — todos derivados de WiFi sniffing, sin sensores físicos -->
+  <div class="kpi-grid">
 
-          <!-- ESP32 Node -->
-          <g transform="translate(295,140)">
-            <circle r="14" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="1.5"/>
-            <circle r="8" fill="rgba(0,212,255,0.2)" stroke="#00d4ff" stroke-width="1"/>
-            <circle r="3" fill="#00d4ff"/>
-            <!-- Wifi rings -->
-            <circle r="20" fill="none" stroke="#00d4ff" stroke-width="0.5" opacity="0.3" stroke-dasharray="3,4">
-              <animate attributeName="r" values="14;30;14" dur="3s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" repeatCount="indefinite"/>
-            </circle>
-            <circle r="40" fill="none" stroke="#00d4ff" stroke-width="0.5" opacity="0.2" stroke-dasharray="2,5">
-              <animate attributeName="r" values="20;50;20" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-18" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00d4ff">ESP32</text>
-          </g>
+    <!-- field2: nº smartphones detectados por probe requests WiFi -->
+    <div class="kpi-card cyan">
+      <div class="kpi-label">DISPOSITIVOS DETECTADOS</div>
+      <div class="kpi-value" id="kpiDevices"><span class="loading-val"></span></div>
+      <div class="kpi-unit">smartphones en zona</div>
+      <span class="kpi-trend" id="trendDevices">—</span>
+    </div>
 
-          <!-- Device dots -->
-          <!-- D1 Zone A -->
-          <g transform="translate(110,95)">
-            <circle r="5" fill="rgba(0,255,157,0.8)" stroke="#00ff9d" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00ff9d">D1</text>
-          </g>
-          <!-- D2 Zone A -->
-          <g transform="translate(155,115)">
-            <circle r="5" fill="rgba(0,255,157,0.8)" stroke="#00ff9d" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="2.5s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00ff9d">D2</text>
-          </g>
-          <!-- D3 Zone B -->
-          <g transform="translate(330,85)">
-            <circle r="5" fill="rgba(0,212,255,0.9)" stroke="#00d4ff" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="1.8s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00d4ff">D3</text>
-          </g>
-          <!-- D4 Zone B -->
-          <g transform="translate(370,110)">
-            <circle r="5" fill="rgba(0,212,255,0.9)" stroke="#00d4ff" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="3s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00d4ff">D4</text>
-          </g>
-          <!-- D5 Zone C (weak) -->
-          <g transform="translate(490,90)">
-            <circle r="5" fill="rgba(255,107,53,0.8)" stroke="#ff6b35" stroke-width="1">
-              <animate attributeName="r" values="5;6;5" dur="4s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#ff6b35">D5</text>
-          </g>
-          <!-- D6 Zone D -->
-          <g transform="translate(200,230)">
-            <circle r="5" fill="rgba(0,255,157,0.7)" stroke="#00ff9d" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="2.2s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00ff9d">D6</text>
-          </g>
-          <!-- D7 Zone D -->
-          <g transform="translate(420,230)">
-            <circle r="5" fill="rgba(0,212,255,0.7)" stroke="#00d4ff" stroke-width="1">
-              <animate attributeName="r" values="5;7;5" dur="2.7s" repeatCount="indefinite"/>
-            </circle>
-            <text dy="-9" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#00d4ff">D7</text>
-          </g>
+    <!-- field1: media del RSSI de todos los dispositivos activos -->
+    <div class="kpi-card blue">
+      <div class="kpi-label">RSSI PROMEDIO</div>
+      <div class="kpi-value" id="kpiRssi"><span class="loading-val"></span></div>
+      <div class="kpi-unit">dBm · señal media</div>
+      <span class="kpi-trend" id="trendRssi">—</span>
+    </div>
 
-          <!-- Legend -->
-          <circle cx="42" cy="285" r="4" fill="#00ff9d" opacity="0.8"/>
-          <text x="50" y="289" font-family="Share Tech Mono" font-size="8" fill="#4a7a96">RSSI fuerte</text>
-          <circle cx="130" cy="285" r="4" fill="#00d4ff" opacity="0.8"/>
-          <text x="138" y="289" font-family="Share Tech Mono" font-size="8" fill="#4a7a96">RSSI medio</text>
-          <circle cx="218" cy="285" r="4" fill="#ff6b35" opacity="0.8"/>
-          <text x="226" y="289" font-family="Share Tech Mono" font-size="8" fill="#4a7a96">RSSI débil</text>
-          <circle cx="296" cy="285" r="6" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
-          <circle cx="296" cy="285" r="2" fill="#00d4ff"/>
-          <text x="306" y="289" font-family="Share Tech Mono" font-size="8" fill="#4a7a96">Nodo ESP32</text>
+    <!-- field3: (device_count / aforo_max) × 100 -->
+    <div class="kpi-card purple">
+      <div class="kpi-label">OCUPACIÓN ESTIMADA</div>
+      <div class="kpi-value" id="kpiOccupancy"><span class="loading-val"></span></div>
+      <div class="kpi-unit">% del aforo máximo</div>
+      <span class="kpi-trend" id="trendOcc">—</span>
+    </div>
+
+    <!-- field6: 100 − occupancy_pct (zona vacía = máxima eficiencia) -->
+    <div class="kpi-card green">
+      <div class="kpi-label">ÍNDICE ENERGÉTICO</div>
+      <div class="kpi-value" id="kpiEnergy"><span class="loading-val"></span></div>
+      <div class="kpi-unit">eficiencia 0–100</div>
+      <span class="kpi-trend" id="trendEnergy">—</span>
+    </div>
+
+    <!-- field7: zonas A/B/C/D con al menos un dispositivo presente -->
+    <div class="kpi-card amber">
+      <div class="kpi-label">ZONAS ACTIVAS</div>
+      <div class="kpi-value" id="kpiZones"><span class="loading-val"></span></div>
+      <div class="kpi-unit">de 4 zonas posibles</div>
+      <span class="kpi-trend" id="trendZones">—</span>
+    </div>
+
+    <!-- field8: alertas generadas (aforo >90%, señal <−75 dBm) -->
+    <div class="kpi-card red">
+      <div class="kpi-label">ALERTAS ACTIVAS</div>
+      <div class="kpi-value" id="kpiAlerts"><span class="loading-val"></span></div>
+      <div class="kpi-unit">eventos críticos</div>
+      <span class="kpi-trend" id="trendAlerts">—</span>
+    </div>
+
+  </div>
+
+  <!-- GRÁFICAS HISTÓRICAS — últimos 30 registros de ThingSpeak -->
+  <div class="charts-row">
+
+    <div class="chart-panel">
+      <div class="panel-header">
+        <span class="panel-title">▸ RSSI PROMEDIO · HISTORIAL</span>
+        <span class="panel-badge" id="chartPoints">0 puntos</span>
+      </div>
+      <div class="chart-svg-wrap">
+        <svg id="rssiChart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none">
+          <text x="300" y="95" text-anchor="middle" fill="#4a6580" font-family="Space Mono" font-size="11">ESPERANDO DATOS...</text>
         </svg>
       </div>
     </div>
 
-    <!-- METRICS -->
-    <div class="panel">
-      <div class="corner-tl"></div>
-      <div class="panel-title">Métricas en Tiempo Real</div>
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">Dispositivos</div>
-          <div class="metric-value" id="metricDev">7</div>
-          <div class="metric-unit">activos</div>
-        </div>
-        <div class="metric-card green">
-          <div class="metric-label">Ocupación</div>
-          <div class="metric-value green" id="metricOcc">64</div>
-          <div class="metric-unit">%</div>
-        </div>
-        <div class="metric-card warn">
-          <div class="metric-label">Alerta RSSI</div>
-          <div class="metric-value warn">-78</div>
-          <div class="metric-unit">dBm · Zona C</div>
-        </div>
-        <div class="metric-card green">
-          <div class="metric-label">Ahorro</div>
-          <div class="metric-value green">23</div>
-          <div class="metric-unit">% energía</div>
-        </div>
+    <div class="chart-panel">
+      <div class="panel-header">
+        <span class="panel-title">▸ DISPOSITIVOS DETECTADOS · HISTORIAL</span>
+        <span class="panel-badge" id="devChartBadge">—</span>
       </div>
-      <div class="node-status">
-        <div class="pulse-dot"></div>
-        <span class="node-status-text">NAYAR-NODE-01 · Canal 6 · 2.4GHz</span>
+      <div class="chart-svg-wrap">
+        <svg id="devChart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none">
+          <text x="300" y="95" text-anchor="middle" fill="#4a6580" font-family="Space Mono" font-size="11">ESPERANDO DATOS...</text>
+        </svg>
       </div>
     </div>
 
-    <!-- RSSI SIGNALS -->
-    <div class="panel">
-      <div class="corner-tl"></div>
-      <div class="panel-title">Señal RSSI · WiFi Sniffing</div>
-      <div class="signal-chart" id="signalChart">
-        <!-- Bars rendered by JS -->
+  </div>
+
+  <!-- FILA INFERIOR -->
+  <div class="bottom-row">
+
+    <!-- Distribución por zona de señal según RSSI -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <span class="panel-title">▸ DISPOSITIVOS POR ZONA DE SEÑAL</span>
+        <span class="panel-badge">RSSI ZONES</span>
+      </div>
+      <div id="zoneBars">
+        <div class="empty-msg">Sin datos de zona.</div>
+      </div>
+      <div class="zone-legend">
+        <span>A · ≥−50 dBm · muy cerca</span>
+        <span>B · −50/−65 · cerca</span>
+        <span>C · −65/−75 · lejos</span>
+        <span>D · &lt;−75 dBm · muy lejos</span>
       </div>
     </div>
 
-    <!-- DEVICE LIST -->
-    <div class="panel" style="grid-column: span 2;">
-      <div class="corner-tl"></div>
-      <div class="corner-br"></div>
-      <div class="panel-title">Dispositivos Detectados · Fingerprinting</div>
-      <div class="device-list" id="deviceList"></div>
+    <!-- Último valor de cada field en ThingSpeak -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <span class="panel-title">▸ CAMPOS THINGSPEAK · LIVE</span>
+        <span class="panel-badge">8 FIELDS</span>
+      </div>
+      <table class="fields-table">
+        <thead>
+          <tr><th>FIELD</th><th>DATO WiFi</th><th>VALOR</th></tr>
+        </thead>
+        <tbody id="fieldsTableBody">
+          <tr><td colspan="3" class="empty-msg">Sin datos</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- ENERGY -->
-    <div class="panel">
-      <div class="corner-tl"></div>
-      <div class="panel-title">Eficiencia Energética · Zonas</div>
-      <div class="energy-bars" id="energyBars"></div>
-    </div>
+  </div>
 
-    <!-- EVENT LOG -->
-    <div class="panel" style="grid-column: span 2;">
-      <div class="corner-tl"></div>
-      <div class="panel-title">Log de Eventos del Sistema</div>
-      <div class="event-log" id="eventLog"></div>
+  <!-- DISPOSITIVOS EN TIEMPO REAL — Raspberry Pi /api/status → .devices[] -->
+  <div class="chart-panel section-gap">
+    <div class="panel-header">
+      <span class="panel-title">▸ DISPOSITIVOS EN TIEMPO REAL · RASPBERRY PI</span>
+      <span class="panel-badge" id="devListBadge">0 activos</span>
     </div>
+    <div class="device-list" id="deviceList">
+      <div class="empty-msg">Sin dispositivos detectados.</div>
+    </div>
+  </div>
 
-    <!-- EVENT LOG 2 -->
-    <div class="panel">
-      <div class="corner-tl"></div>
-      <div class="panel-title">Business Intelligence</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;" id="biPanel">
+  <!-- BUSINESS INTELLIGENCE — calculado desde sniffing -->
+  <div class="chart-panel section-gap">
+    <div class="panel-header">
+      <span class="panel-title">▸ BUSINESS INTELLIGENCE · WIFI</span>
+      <span class="panel-badge">UPTIME: <span id="uptimeDisplay">--:--:--</span></span>
+    </div>
+    <div id="biPanel">
+      <div class="empty-msg">Sin datos BI.</div>
+    </div>
+  </div>
+
+  <!-- LOG DEL SISTEMA — eventos del nodo Raspberry -->
+  <div class="log-panel">
+    <div class="panel-header">
+      <span class="panel-title">▸ LOG DEL SISTEMA</span>
+      <button class="btn btn-secondary" onclick="clearLog()">LIMPIAR</button>
+    </div>
+    <div class="log-entries" id="logEntries">
+      <div class="log-line">
+        <span class="log-time">—</span>
+        <span class="log-level-info">INFO</span>
+        <span>Sistema NAYAR inicializado. Introduce las credenciales y pulsa CONECTAR.</span>
       </div>
     </div>
+  </div>
 
-    <!-- TECH STACK -->
-    <div class="panel panel-tech">
-      <div class="panel-title">Stack Tecnológico</div>
-      <div class="tech-stack">
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div>
-          <div>
-            <div class="tech-name">ESP32</div>
-            <div class="tech-role">Nodo Standalone · Sensor</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#ff6b35;box-shadow:0 0 6px #ff6b35"></div>
-          <div>
-            <div class="tech-name">Antena WiFi Externa</div>
-            <div class="tech-role">Alcance Extendido · RSSI</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#00ff9d;box-shadow:0 0 6px #00ff9d"></div>
-          <div>
-            <div class="tech-name">Vue.js / HTML5</div>
-            <div class="tech-role">Frontend · Dashboard</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div>
-          <div>
-            <div class="tech-name">Quasar Framework</div>
-            <div class="tech-role">Tech Corner · UI Components</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div>
-          <div>
-            <div class="tech-name">Python / Go</div>
-            <div class="tech-role">Backend · API · ML Pipeline</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div>
-          <div>
-            <div class="tech-name">WiFi RSSI / Sniffing</div>
-            <div class="tech-role">Detección sin cámara · Privacidad</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#00ff9d;box-shadow:0 0 6px #00ff9d"></div>
-          <div>
-            <div class="tech-name">Smartphone ID</div>
-            <div class="tech-role">Fingerprint por señal MAC</div>
-          </div>
-        </div>
-        <div class="tech-node">
-          <div class="tech-dot" style="background:#ff6b35;box-shadow:0 0 6px #ff6b35"></div>
-          <div>
-            <div class="tech-name">BI Engine</div>
-            <div class="tech-role">Optimización · Analytics</div>
-          </div>
-        </div>
-      </div>
-    </div>
+</main>
 
-  </div><!-- /main-grid -->
-</div><!-- /shell -->
-
+<!-- FOOTER -->
+<footer>
+  <span>PROYECTO NAYAR · WIFI SNIFFING · INTELIGENCIA ESPACIAL</span>
+  <span id="footerChannel">CANAL THINGSPEAK: —</span>
+  <span>RASPBERRY PI (UBUNTU) + THINGSPEAK</span>
+</footer>
 
 <script src="main.js"></script>
 </body>
