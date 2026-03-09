@@ -251,17 +251,17 @@ def send_thingspeak(stats):
     """
     global alert_code
 
-    params = {
-        "api_key": THINGSPEAK_API_KEY,
-        "field1":  stats["total_active"],
-        "field2":  stats["zone_A"],
-        "field3":  stats["zone_B"],
-        "field4":  stats["zone_C"],
-        "field5":  stats["zone_D"],
-        "field6":  stats["avg_rssi"],
-        "field7":  stats["ocupacion"],
-        "field8":  alert_code,
-    }
+params = {
+    "api_key": THINGSPEAK_API_KEY,
+    "field1":  stats["avg_rssi"],                          # RSSI promedio
+    "field2":  stats["total_active"],                      # Nº dispositivos
+    "field3":  stats["ocupacion"],                         # Ocupación %
+    "field4":  min([d["rssi"] for d in devices.values() if is_active(d)] or [0]),  # RSSI mín
+    "field5":  max([d["rssi"] for d in devices.values() if is_active(d)] or [0]),  # RSSI máx
+    "field6":  max(0, 100 - stats["ocupacion"]),           # Índice energético
+    "field7":  sum(1 for z in ["A","B","C","D"] if stats[f"zone_{z}"] > 0),  # Zonas activas
+    "field8":  alert_code,                                  # Alertas
+}
 
     try:
         response = requests.get(
