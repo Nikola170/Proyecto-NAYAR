@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAYAR — Acceso al Sistema</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #040a10;
+    --cyan:   #00e5ff;
+    --cyan2:  rgba(0,229,255,0.6);
+    --cyan3:  rgba(0,229,255,0.08);
+    --blue:   #0d2236;
+    --red:    #ff3c3c;
+    --text:   #a8c8d8;
+    --muted:  #2d5566;
+    --mono:   'JetBrains Mono', monospace;
+    --head:   'Bebas Neue', sans-serif;
+    --body:   'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--cyan);
+    font-family: var(--body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── CANVAS BACKGROUND ── */
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none; /* mousemove se captura en window */
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    animation: scanMove 8s linear infinite;
+  }
+  @keyframes scanMove {
+    0%   { background-position: 0 0; }
+    100% { background-position: 0 100px; }
+  }
+
+  /* ── HORIZONTAL SCAN LINE ── */
+  body::after {
+    content: '';
+    position: fixed;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan2), transparent);
+    z-index: 2;
+    pointer-events: none;
+    animation: hScan 6s linear infinite;
+    opacity: 0.4;
+  }
+  @keyframes hScan {
+    0%   { top: -10px; opacity: 0; }
+    5%   { opacity: 0.4; }
+    95%  { opacity: 0.4; }
+    100% { top: 100vh; opacity: 0; }
+  }
+
+  /* ── WRAPPER ── */
+  .wrapper {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    animation: wrapIn 0.8s cubic-bezier(0.2,0,0,1) both;
+  }
+  @keyframes wrapIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── TOP BRAND ── */
+  .brand {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: wrapIn 0.8s 0.1s cubic-bezier(0.2,0,0,1) both;
+  }
+
+  .brand-hex {
+    display: inline-block;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 12px var(--cyan2));
+    animation: hexPulse 4s ease-in-out infinite;
+  }
+  @keyframes hexPulse {
+    0%,100% { filter: drop-shadow(0 0 8px var(--cyan2)); }
+    50%      { filter: drop-shadow(0 0 22px var(--cyan)); }
+  }
+
+  .brand h1 {
+    font-family: var(--head);
+    font-size: 64px;
+    letter-spacing: 14px;
+    color: var(--cyan);
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(0,229,255,0.4), 0 0 60px rgba(0,229,255,0.15);
+  }
+
+  .brand-sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ── LOGIN BOX ── */
+  .login-box {
+    width: 360px;
+    background: linear-gradient(160deg, rgba(13,34,54,0.95) 0%, rgba(4,10,16,0.98) 100%);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 4px;
+    padding: 36px 32px 28px;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(0,229,255,0.05),
+      0 20px 60px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(0,229,255,0.08);
+    animation: wrapIn 0.8s 0.2s cubic-bezier(0.2,0,0,1) both;
+  }
+
+  /* Corner decorations */
+  .login-box::before,
+  .login-box::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--cyan);
+    border-style: solid;
+  }
+  .login-box::before {
+    top: -1px; left: -1px;
+    border-width: 2px 0 0 2px;
+  }
+  .login-box::after {
+    bottom: -1px; right: -1px;
+    border-width: 0 2px 2px 0;
+  }
+
+  /* Extra corners via spans */
+  .corner-tr, .corner-bl {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--cyan);
+    border-style: solid;
+  }
+  .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+
+  /* ── HEADER ROW ── */
+  .box-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(0,229,255,0.08);
+  }
+  .box-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: blink 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .box-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--text);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .box-id {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── FIELD GROUP ── */
+  .field-group {
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+    transition: color 0.2s;
+  }
+  .field-group:focus-within .field-label {
+    color: var(--cyan);
+  }
+
+  .field-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .field-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--muted);
+    font-size: 11px;
+    transition: color 0.2s;
+    pointer-events: none;
+    font-family: var(--mono);
+  }
+  .field-group:focus-within .field-icon { color: var(--cyan); }
+
+  input {
+    width: 100%;
+    padding: 10px 12px 10px 30px;
+    background: rgba(0,229,255,0.03);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 3px;
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  input::placeholder { color: var(--muted); font-size: 11px; letter-spacing: 1px; }
+  input:focus {
+    border-color: var(--cyan);
+    background: rgba(0,229,255,0.05);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.08), 0 0 16px rgba(0,229,255,0.1);
+  }
+  input[type="password"] { letter-spacing: 3px; }
+  input[type="password"]::placeholder { letter-spacing: 1px; }
+
+  /* Password toggle */
+  .toggle-pw {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 0;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+    width: auto;
+    height: auto;
+    box-shadow: none;
+  }
+  .toggle-pw:hover { color: var(--cyan); box-shadow: none; }
+
+  /* ── SUBMIT BUTTON ── */
+  .btn-submit {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.3s;
+  }
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cyan);
+    transform: translateX(-101%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index: 0;
+  }
+  .btn-submit:hover::before { transform: translateX(0); }
+  .btn-submit:hover { color: #001820; }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit span { position: relative; z-index: 1; }
+
+  /* loading state */
+  .btn-submit.loading { pointer-events: none; }
+  .btn-submit.loading span { opacity: 0; }
+  .btn-submit.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--cyan2), transparent);
+    background-size: 200% 100%;
+    animation: loadSlide 0.8s linear infinite;
+    z-index: 1;
+  }
+  @keyframes loadSlide {
+    0%   { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* ── ERROR ── */
+  .error-msg {
+    height: 18px;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--red);
+    text-align: center;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .error-msg.show {
+    opacity: 1;
+    transform: none;
+    animation: errShake 0.35s cubic-bezier(0.36,0.07,0.19,0.97);
+  }
+  @keyframes errShake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+  }
+
+  /* ── BOTTOM META ── */
+  .box-footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0,229,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .box-footer span {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  #clockSmall { color: rgba(0,229,255,0.4); }
+
+</style>
+</head>
+<body>
+
+<!-- Fondo animado con partículas -->
+<canvas id="bg"></canvas>
+
+<div class="wrapper">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-hex">
+      <svg width="52" height="52" viewBox="0 0 44 44">
+        <polygon points="22,3 39,12.5 39,31.5 22,41 5,31.5 5,12.5"
+          fill="none" stroke="#00e5ff" stroke-width="1.2" opacity="0.5"/>
+        <polygon points="22,8 34,15 34,29 22,36 10,29 10,15"
+          fill="none" stroke="#00e5ff" stroke-width="0.7" opacity="0.25"/>
+        <polygon points="22,13 29,17 29,25 22,29 15,25 15,17"
+          fill="none" stroke="#00e5ff" stroke-width="0.5" opacity="0.15"/>
+        <circle cx="22" cy="22" r="3.5" fill="#00e5ff" opacity="0.9"/>
+        <circle cx="22" cy="22" r="6"   fill="none" stroke="#00e5ff" stroke-width="0.5" opacity="0.3"/>
+      </svg>
+    </div>
+    <h1>NAYAR</h1>
+    <div class="brand-sub">Inteligencia Espacial · WiFi Sniffing · v2.0</div>
+  </div>
+
+  <!-- Login box -->
+  <div class="login-box">
+    <span class="corner-tr"></span>
+    <span class="corner-bl"></span>
+
+    <div class="box-header">
+      <div class="box-status-dot"></div>
+      <span class="box-title">Autenticación requerida</span>
+      <span class="box-id">SYS-AUTH-01</span>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="usuario">Identificador</label>
+      <div class="field-input-wrap">
+        <span class="field-icon">›_</span>
+        <input type="text" id="usuario" placeholder="usuario" autocomplete="username" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="password">Clave de acceso</label>
+      <div class="field-input-wrap">
+        <span class="field-icon">⬡</span>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">MOSTRAR</button>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btnLogin" onclick="login()">
+      <span>▶ CONECTAR AL SISTEMA</span>
+    </button>
+
+    <div class="error-msg" id="errorMsg">⚠ CREDENCIALES INVÁLIDAS</div>
+
+    <div class="box-footer">
+      <span>NAYAR SECURE ACCESS</span>
+      <span id="clockSmall">--:--:--</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─── RELOJ ─── */
+(function clock() {
+  const el = document.getElementById('clockSmall');
+  setInterval(() => {
+    el.textContent = new Date().toTimeString().slice(0,8);
+  }, 1000);
+})();
+
+/* ─── FONDO: GRID + HOVER GLOW + PARTÍCULAS ─── */
+(function initBg() {
+  const canvas = document.getElementById('bg');
+  const ctx    = canvas.getContext('2d');
+  const GS     = 44;          // tamaño de celda
+  const FADE   = 0.015;       // velocidad de desvanecimiento por frame
+  const RADIUS = 2;           // radio de celdas iluminadas alrededor del cursor
+
+  let W, H, nodes;
+  let mouse = { x: -9999, y: -9999 };
+
+  // Mapa de brillo por celda: clave "col,row" → valor 0–1
+  const cellGlow = new Map();
+
+  // Escuchar movimiento del ratón — el canvas tiene pointer-events:none,
+  // así que escuchamos en window
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+
+    // Celda central bajo el cursor
+    const cx = Math.floor(mouse.x / GS);
+    const cy = Math.floor(mouse.y / GS);
+
+    // Iluminar celdas en radio alrededor
+    for (let dx = -RADIUS; dx <= RADIUS; dx++) {
+      for (let dy = -RADIUS; dy <= RADIUS; dy++) {
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > RADIUS) continue;
+        const intensity = 1 - dist / (RADIUS + 1);
+        const key = `${cx+dx},${cy+dy}`;
+        const cur = cellGlow.get(key) || 0;
+        cellGlow.set(key, Math.min(1, Math.max(cur, intensity)));
+      }
+    }
+  });
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    nodes = Array.from({ length: 55 }, () => ({
+      x:  Math.random() * W,
+      y:  Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      r:  Math.random() * 1.4 + 0.4
+    }));
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // ── 1. RELLENO DE CELDAS CON GLOW ──
+    const cols = Math.ceil(W / GS) + 1;
+    const rows = Math.ceil(H / GS) + 1;
+
+    // Fade all cells
+    for (const [key, val] of cellGlow) {
+      const next = val - FADE;
+      if (next <= 0.001) cellGlow.delete(key);
+      else cellGlow.set(key, next);
+    }
+
+    // Dibujar celdas iluminadas
+    for (const [key, val] of cellGlow) {
+      const [col, row] = key.split(',').map(Number);
+      const px = col * GS;
+      const py = row * GS;
+      if (px > W + GS || py > H + GS || px < -GS || py < -GS) continue;
+
+      // Relleno con gradiente radial dentro de la celda
+      const cx = px + GS / 2;
+      const cy = py + GS / 2;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, GS * 0.8);
+      grad.addColorStop(0,   `rgba(0,229,255,${(val * 0.18).toFixed(3)})`);
+      grad.addColorStop(0.5, `rgba(0,180,220,${(val * 0.08).toFixed(3)})`);
+      grad.addColorStop(1,   `rgba(0,100,160,0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(px, py, GS, GS);
+
+      // Borde de la celda iluminado
+      ctx.strokeStyle = `rgba(0,229,255,${(val * 0.35).toFixed(3)})`;
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(px + 0.5, py + 0.5, GS - 1, GS - 1);
+    }
+
+    // ── 2. GRID BASE ──
+    ctx.strokeStyle = 'rgba(0,229,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= W; x += GS) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += GS) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // ── 3. PARTÍCULAS Y CONEXIONES ──
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < 110) {
+          ctx.strokeStyle = `rgba(0,229,255,${(0.07 * (1 - d / 110)).toFixed(3)})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,229,255,0.3)';
+      ctx.fill();
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ─── TOGGLE PASSWORD ─── */
+function togglePw() {
+  const inp = document.getElementById('password');
+  const btn = document.getElementById('pwToggle');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.textContent = 'OCULTAR';
+  } else {
+    inp.type = 'password';
+    btn.textContent = 'MOSTRAR';
+  }
+}
+
+/* ─── LOGIN ─── */
+function login() {
+  const user = document.getElementById('usuario').value.trim();
+  const pass = document.getElementById('password').value;
+  const btn  = document.getElementById('btnLogin');
+  const err  = document.getElementById('errorMsg');
+
+  // Limpiar error anterior
+  err.classList.remove('show');
+
+  // Simulación de carga
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    if (user === 'admin' && pass === '1234') {
+      // Éxito: flash + redirect
+      document.querySelector('.wrapper').style.animation = 'none';
+      document.querySelector('.wrapper').style.opacity   = '0';
+      document.querySelector('.wrapper').style.transition = 'opacity 0.4s';
+      setTimeout(() => { window.location.href = 'loginpage.html'; }, 400);
+    } else {
+      err.classList.remove('show');
+      void err.offsetWidth; // reflow para re-trigger animación
+      err.classList.add('show');
+      // Shake en el box
+      const box = document.querySelector('.login-box');
+      box.style.animation = 'none';
+      void box.offsetWidth;
+      box.style.animation = 'errShake 0.35s cubic-bezier(0.36,0.07,0.19,0.97)';
+    }
+  }, 600);
+}
+
+/* ─── ENTER KEY ─── */
+['usuario','password'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+});
+</script>
+</body>
+</html>
