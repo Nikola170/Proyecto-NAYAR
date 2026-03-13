@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Proyecto NAYAR — Solicitar Acceso</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0,229,255,0.15);
+    --cyan-glow: rgba(0,229,255,0.5);
+    --bg: #050b12;
+    --panel: rgba(10,20,35,0.90);
+    --red: #ff4d4d;
+    --green: #00ffb3;
+    --text-muted: rgba(0,229,255,0.5);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background-color: var(--bg);
+    color: var(--cyan);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image:
+      linear-gradient(rgba(0,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    padding: 20px;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .titulo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 38px;
+    letter-spacing: 10px;
+    font-weight: 400;
+    margin-bottom: 6px;
+    text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan-glow);
+    animation: flicker 6s infinite;
+  }
+
+  .subtitulo {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.7; }
+    97% { opacity: 1; }
+    98% { opacity: 0.6; }
+    99% { opacity: 1; }
+  }
+
+  .panel {
+    background: var(--panel);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,229,255,0.2);
+    box-shadow: 0 0 30px rgba(0,229,255,0.1), inset 0 0 30px rgba(0,0,0,0.3);
+    position: relative;
+  }
+
+  /* Corner decorations */
+  .panel::before, .panel::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border-color: var(--cyan);
+    border-style: solid;
+  }
+  .panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,229,255,0.12);
+  }
+
+  .panel-header .icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .panel-header h2 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: #07121f;
+    border: 1px solid #0a3d4a;
+    border-radius: 4px;
+    color: var(--cyan);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    resize: none;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,229,255,0.35);
+  }
+
+  textarea { height: 90px; }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    margin-top: 8px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:hover {
+    background: var(--cyan-dim);
+    box-shadow: 0 0 18px var(--cyan-glow);
+    color: #fff;
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .btn-back {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    border: 1px solid rgba(0,229,255,0.2);
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  .btn-back:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .msg {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-align: center;
+    display: none;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .msg.error {
+    background: rgba(255,77,77,0.1);
+    border: 1px solid rgba(255,77,77,0.4);
+    color: var(--red);
+    display: block;
+  }
+
+  .msg.success {
+    background: rgba(0,255,179,0.08);
+    border: 1px solid rgba(0,255,179,0.35);
+    color: var(--green);
+    display: block;
+  }
+
+  /* Success state */
+  .success-panel {
+    display: none;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .success-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: pulse-green 2s infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { text-shadow: 0 0 10px var(--green); }
+    50% { text-shadow: 0 0 25px var(--green), 0 0 50px var(--green); }
+  }
+
+  .success-panel h3 {
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  .success-panel p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: rgba(0,229,255,0.1);
+    border-radius: 2px;
+    margin-top: 20px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .progress-bar.active { display: block; }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--cyan);
+    width: 0%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  .note {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    text-align: center;
+    margin-top: 18px;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  .note a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="titulo">NAYAR</div>
+<div class="subtitulo">SISTEMA DE CONTROL DE ACCESO</div>
+
+<div class="panel" id="mainPanel">
+
+  <!-- Formulario -->
+  <div id="formSection">
+    <div class="panel-header">
+      <span class="icon">🔐</span>
+      <h2>Solicitar Acceso</h2>
+    </div>
+
+    <div class="field">
+      <label>Tu nombre</label>
+      <input type="text" id="nombre" placeholder="Nombre completo" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Tu correo electrónico</label>
+      <input type="email" id="correo" placeholder="usuario@dominio.com" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Motivo de la solicitud</label>
+      <textarea id="motivo" placeholder="Describe brevemente por qué necesitas acceso al sistema..."></textarea>
+    </div>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <button class="btn" id="btnEnviar" onclick="enviarSolicitud()">
+      ▶ ENVIAR SOLICITUD AL ADMINISTRADOR
+    </button>
+
+    <button class="btn-back" onclick="window.location.href='index.html'">
+      ← VOLVER AL ACCESO
+    </button>
+
+    <div class="msg" id="msg"></div>
+
+    <p class="note">La solicitud será enviada a<br><a href="mailto:ramblaalvaro@gmail.com">ramblaalvaro@gmail.com</a></p>
+  </div>
+
+  <!-- Éxito -->
+  <div class="success-panel" id="successSection">
+    <div class="success-icon">✔</div>
+    <h3>SOLICITUD ENVIADA</h3>
+    <p>Tu petición ha sido transmitida al<br>administrador del sistema.<br><br>
+    Recibirás confirmación en tu correo<br>cuando el acceso sea concedido.</p>
+    <button class="btn-back" style="margin-top:28px;" onclick="window.location.href='index.html'">
+      ← VOLVER AL ACCESO
+    </button>
+  </div>
+
+</div>
+
+<script>
+  // ─── EmailJS ──────────────────────────────────────────────────────────────
+  // Usamos EmailJS (plan gratuito) para enviar el correo directamente
+  // desde el navegador sin backend.
+  // Pasos para activarlo:
+  //   1. Crea cuenta en https://www.emailjs.com
+  //   2. Crea un "Email Service" (Gmail) y apunta el Service ID abajo.
+  //   3. Crea un "Email Template" con variables {{nombre}}, {{correo}}, {{motivo}}
+  //      y apunta el Template ID abajo.
+  //   4. Copia tu Public Key y ponla abajo.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const EMAILJS_PUBLIC_KEY  = "TU_PUBLIC_KEY";   // ← reemplaza
+  const EMAILJS_SERVICE_ID  = "TU_SERVICE_ID";   // ← reemplaza
+  const EMAILJS_TEMPLATE_ID = "TU_TEMPLATE_ID";  // ← reemplaza
+
+  // Carga el SDK de EmailJS dinámicamente
+  (function(){
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+    s.onload = () => emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    document.head.appendChild(s);
+  })();
+
+  // ─── Lógica del formulario ────────────────────────────────────────────────
+
+  function mostrarMsg(tipo, texto) {
+    const el = document.getElementById('msg');
+    el.className = 'msg ' + tipo;
+    el.textContent = texto;
+  }
+
+  function limpiarMsg() {
+    const el = document.getElementById('msg');
+    el.className = 'msg';
+    el.textContent = '';
+  }
+
+  function animarBarra(cb) {
+    const bar  = document.getElementById('progressBar');
+    const fill = document.getElementById('progressFill');
+    bar.classList.add('active');
+    fill.style.width = '0%';
+    let w = 0;
+    const iv = setInterval(() => {
+      w += 2;
+      fill.style.width = w + '%';
+      if (w >= 90) clearInterval(iv);
+    }, 40);
+    setTimeout(() => {
+      fill.style.width = '100%';
+      setTimeout(() => { bar.classList.remove('active'); cb(); }, 300);
+    }, 2200);
+  }
+
+  function mostrarExito() {
+    document.getElementById('formSection').style.display = 'none';
+    const s = document.getElementById('successSection');
+    s.style.display = 'block';
+    s.style.animation = 'none';
+  }
+
+  async function enviarSolicitud() {
+    limpiarMsg();
+
+    const nombre = document.getElementById('nombre').value.trim();
+    const correo = document.getElementById('correo').value.trim();
+    const motivo = document.getElementById('motivo').value.trim();
+
+    if (!nombre) { mostrarMsg('error', 'CAMPO REQUERIDO: nombre'); return; }
+    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      mostrarMsg('error', 'CORREO NO VÁLIDO'); return;
+    }
+    if (!motivo) { mostrarMsg('error', 'CAMPO REQUERIDO: motivo'); return; }
+
+    const btn = document.getElementById('btnEnviar');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ TRANSMITIENDO...';
+
+    animarBarra(async () => {
+      try {
+        const templateParams = {
+          to_email : 'ramblaalvaro@gmail.com',
+          nombre   : nombre,
+          correo   : correo,
+          motivo   : motivo,
+          fecha    : new Date().toLocaleString('es-ES'),
+        };
+
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+        mostrarExito();
+
+      } catch (err) {
+        console.error(err);
+
+        // ── Modo demostración (sin EmailJS configurado) ──
+        // Si no tienes las claves aún, muestra el éxito de todas formas
+        // para que puedas ver el flujo completo.
+        if (
+          EMAILJS_PUBLIC_KEY  === "TU_PUBLIC_KEY" ||
+          EMAILJS_SERVICE_ID  === "TU_SERVICE_ID" ||
+          EMAILJS_TEMPLATE_ID === "TU_TEMPLATE_ID"
+        ) {
+          mostrarExito(); // demo sin credenciales reales
+        } else {
+          btn.classList.remove('loading');
+          btn.textContent = '▶ ENVIAR SOLICITUD AL ADMINISTRADOR';
+          mostrarMsg('error', 'ERROR DE TRANSMISIÓN — INTENTA DE NUEVO');
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
