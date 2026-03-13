@@ -249,7 +249,7 @@
     <div style="padding:12px 20px; border-bottom:1px solid rgba(0,229,255,0.06)">
       <div class="search-wrap field-input-wrap">
         <span class="field-icon" style="top:50%;transform:translateY(-50%)">🔍</span>
-        <input type="text" id="inputSearch" placeholder="Buscar por MAC o nombre..." oninput="filtrar()" style="font-size:11px">
+        <input type="text" id="inputSearch" placeholder="Buscar por MAC o nombre..." style="font-size:11px">
       </div>
     </div>
 
@@ -425,6 +425,8 @@
     if (formatted.length > 17) formatted = formatted.slice(0,17);
     this.value = formatted.toUpperCase();
   });
+
+  document.getElementById('inputSearch').addEventListener('input', filtrar);
 </script>
 
 <!-- Fondo animado -->
